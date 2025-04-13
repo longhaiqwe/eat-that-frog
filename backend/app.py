@@ -87,6 +87,13 @@ class Task(db.Model):
 # 创建数据库表
 with app.app_context():
     db.create_all()
+    
+    # 检查是否有任务，如果没有则创建一个示例任务
+    if not Task.query.first():
+        example_task = Task(content="开始吧！写下你今天最想完成的任务。")
+        db.session.add(example_task)
+        db.session.commit()
+        print("Created example task")
 
 # 路由：获取当天的任务
 @app.route('/api/task/today', methods=['GET'])
