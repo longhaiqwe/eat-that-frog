@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 
 app = Flask(__name__)
@@ -18,11 +18,15 @@ app.config['SQLALCHEMY_DATABASE_URI'] = db_path
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+# 获取上海时间（UTC+8）
+def get_shanghai_time():
+    return datetime.utcnow() + timedelta(hours=8)
+
 # 定义任务模型
 class Task(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.String(500), nullable=False)
-    created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    created_at = db.Column(db.DateTime, default=get_shanghai_time)
     completed = db.Column(db.Boolean, default=False)
     completed_at = db.Column(db.DateTime, nullable=True)
 
@@ -84,7 +88,7 @@ def complete_task(task_id):
     task = Task.query.get_or_404(task_id)
     
     task.completed = True
-    task.completed_at = datetime.utcnow()
+    task.completed_at = get_shanghai_time()
     db.session.commit()
     
     return jsonify(task.to_dict()), 200
@@ -100,7 +104,7 @@ def get_task_history():
 def index():
     return jsonify({"status": "ok", "message": "Eat That Frog API is running"})
 
+# 启动应用
 if __name__ == '__main__':
-    # 使用环境变量中的端口，如果没有则使用5001
-    port = int(os.environ.get("PORT", 5001))
-    app.run(debug=False, host='0.0.0.0', port=port)
+    port = int(os.environ.get('PORT', 5001))
+    app.run(host='0.0.0.0', port=port)
