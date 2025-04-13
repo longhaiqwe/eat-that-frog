@@ -10,10 +10,10 @@ import Header from './components/Header';
 import Footer from './components/Footer';
 
 // 获取API URL，使用相对路径以便 Netlify 代理
-// 在本地开发时使用环境变量，在生产环境使用相对路径
+// 在本地开发时使用环境变量，在生产环境使用环境变量或默认值
 const API_BASE_URL = process.env.NODE_ENV === 'development' 
   ? (process.env.REACT_APP_API_URL || 'http://localhost:5001')
-  : '';
+  : (process.env.REACT_APP_API_URL || '');
 
 console.log('当前 API 基础 URL:', API_BASE_URL);
 console.log('当前环境:', process.env.NODE_ENV);
@@ -35,14 +35,27 @@ axios.interceptors.request.use(
       config.url = `/api/${config.url}`;
     }
     
-    // 在生产环境下添加完整的请求 URL
-    if (process.env.NODE_ENV === 'production') {
-      const fullUrl = new URL(config.url, window.location.origin).href;
-      console.log(`完整请求 URL: ${fullUrl}`);
-    } else {
-      console.log(`最终请求 URL: ${config.url}`);
+    // 如果有 API_BASE_URL 并且使用相对路径，则添加完整的请求 URL
+    if (API_BASE_URL && !config.url.startsWith('http') && !config.url.startsWith('/')) {
+      config.url = `${API_BASE_URL}/${config.url}`;
+    } else if (API_BASE_URL && config.url.startsWith('/api/')) {
+      // 如果 URL 以 /api/ 开头并且有 API_BASE_URL，则替换 URL
+      config.url = `${API_BASE_URL}${config.url.substring(4)}`;
     }
     
+    // 在生产环境下添加完整的请求 URL
+    if (process.env.NODE_ENV === 'production') {
+      try {
+        const fullUrl = config.url.startsWith('http') 
+          ? config.url 
+          : new URL(config.url, window.location.origin).href;
+        console.log(`完整请求 URL: ${fullUrl}`);
+      } catch (e) {
+        console.log(`无法解析 URL: ${config.url}`);
+      }
+    }
+    
+    console.log(`最终请求 URL: ${config.url}`);
     return config;
   },
   error => {
