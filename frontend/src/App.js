@@ -129,7 +129,7 @@ function App() {
   const createTask = async (content) => {
     try {
       setLoading(true);
-      const response = await axios.post(`task`, { content });
+      const response = await axios.post(`api/task`, { content });
       setTask(response.data);
       setError(null);
       return true;
@@ -151,7 +151,7 @@ function App() {
     
     try {
       setLoading(true);
-      const response = await axios.put(`task/${taskId}`, { content });
+      const response = await axios.put(`api/task/${taskId}`, { content });
       setTask(response.data);
       setError(null);
       return true;
@@ -173,7 +173,7 @@ function App() {
     
     try {
       setLoading(true);
-      await axios.put(`task/${taskId}/complete`);
+      await axios.put(`api/task/${taskId}/complete`);
       setTask(null);
       setError(null);
       return true;
