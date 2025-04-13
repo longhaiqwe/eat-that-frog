@@ -5,22 +5,47 @@ from datetime import datetime, timedelta
 import os
 
 app = Flask(__name__)
-# 配置CORS，允许所有域名访问API
-CORS(app)
+
+# 配置CORS，允许Netlify的请求
+CORS(app, resources={
+    r"/*": {
+        "origins": ["http://localhost:3000", "https://eat-frog.netlify.app"],
+        "methods": ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+        "allow_headers": ["Content-Type", "Authorization", "Accept"],
+        "supports_credentials": True
+    }
+})
 
 # 添加CORS头部的中间件
 @app.after_request
 def add_cors_headers(response):
-    response.headers.add('Access-Control-Allow-Origin', '*')
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    # 允许特定的域名
+    origin = request.headers.get('Origin')
+    if origin in ['http://localhost:3000', 'https://eat-frog.netlify.app']:
+        response.headers.add('Access-Control-Allow-Origin', origin)
+    else:
+        response.headers.add('Access-Control-Allow-Origin', '*')
+    
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,Accept')
     response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
     return response
 
 # 处理OPTIONS请求
 @app.route('/', defaults={'path': ''}, methods=['OPTIONS'])
 @app.route('/<path:path>', methods=['OPTIONS'])
 def options_handler(path):
-    return make_response()
+    response = make_response()
+    origin = request.headers.get('Origin')
+    if origin in ['http://localhost:3000', 'https://eat-frog.netlify.app']:
+        response.headers.add('Access-Control-Allow-Origin', origin)
+    else:
+        response.headers.add('Access-Control-Allow-Origin', '*')
+    
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,Accept')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
 
 # 配置数据库
 db_path = os.environ.get('DATABASE_URL', 'sqlite:///frogs.db')
