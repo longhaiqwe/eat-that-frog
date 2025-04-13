@@ -101,7 +101,7 @@ function App() {
   const fetchTodayTask = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`task/today`);
+      const response = await axios.get(`api/task/today`);
       
       // 检查响应数据是否为 JSON
       if (typeof response.data === 'object') {

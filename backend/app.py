@@ -19,16 +19,21 @@ CORS(app, resources={
 # 添加CORS头部的中间件
 @app.after_request
 def add_cors_headers(response):
-    # 允许特定的域名
-    origin = request.headers.get('Origin')
-    if origin in ['http://localhost:3000', 'https://eat-frog.netlify.app']:
-        response.headers.add('Access-Control-Allow-Origin', origin)
-    else:
-        response.headers.add('Access-Control-Allow-Origin', '*')
+    # 允许特定的域名，但不重复添加
+    if 'Access-Control-Allow-Origin' not in response.headers:
+        origin = request.headers.get('Origin')
+        if origin in ['http://localhost:3000', 'https://eat-frog.netlify.app']:
+            response.headers.add('Access-Control-Allow-Origin', origin)
+        else:
+            response.headers.add('Access-Control-Allow-Origin', '*')
     
-    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,Accept')
-    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-    response.headers.add('Access-Control-Allow-Credentials', 'true')
+    # 只在没有这些头部时添加
+    if 'Access-Control-Allow-Headers' not in response.headers:
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,Accept')
+    if 'Access-Control-Allow-Methods' not in response.headers:
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    if 'Access-Control-Allow-Credentials' not in response.headers:
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
     return response
 
 # 处理OPTIONS请求
@@ -36,6 +41,7 @@ def add_cors_headers(response):
 @app.route('/<path:path>', methods=['OPTIONS'])
 def options_handler(path):
     response = make_response()
+    # 允许特定的域名
     origin = request.headers.get('Origin')
     if origin in ['http://localhost:3000', 'https://eat-frog.netlify.app']:
         response.headers.add('Access-Control-Allow-Origin', origin)
