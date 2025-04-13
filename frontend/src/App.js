@@ -13,7 +13,7 @@ import Footer from './components/Footer';
 // 在本地开发时使用环境变量，在生产环境使用相对路径
 const API_BASE_URL = process.env.NODE_ENV === 'development' 
   ? (process.env.REACT_APP_API_URL || 'http://localhost:5001')
-  : '/api';
+  : '';
 
 console.log('当前 API 基础 URL:', API_BASE_URL);
 console.log('当前环境:', process.env.NODE_ENV);
@@ -30,10 +30,9 @@ axios.interceptors.request.use(
     console.log(`发送请求到: ${config.url}`);
     
     // 确保使用正确的URL格式
-    if (!config.url.startsWith('http') && !config.url.startsWith('/')) {
-      config.url = `${API_BASE_URL}/${config.url}`;
-    } else if (!config.url.startsWith('http') && config.url.startsWith('/')) {
-      config.url = `${API_BASE_URL}${config.url}`;
+    if (!config.url.startsWith('http') && !config.url.startsWith('/api/')) {
+      // 如果 URL 不以 http 或 /api/ 开头，则添加 /api/ 前缀
+      config.url = `/api/${config.url}`;
     }
     
     console.log(`最终请求URL: ${config.url}`);
@@ -77,7 +76,7 @@ function App() {
   const fetchTodayTask = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE_URL}/api/task/today`);
+      const response = await axios.get(`task/today`);
       setTask(response.data);
       setError(null);
     } catch (err) {
@@ -97,7 +96,7 @@ function App() {
   const createTask = async (content) => {
     try {
       setLoading(true);
-      const response = await axios.post(`${API_BASE_URL}/api/task`, { content });
+      const response = await axios.post(`task`, { content });
       setTask(response.data);
       setError(null);
       return true;
@@ -111,9 +110,15 @@ function App() {
   };
 
   const updateTask = async (taskId, content) => {
+    if (!taskId) {
+      console.error('Cannot update task: taskId is undefined');
+      setError('更新任务失败：taskId 未定义');
+      return false;
+    }
+    
     try {
       setLoading(true);
-      const response = await axios.put(`${API_BASE_URL}/api/task/${taskId}`, { content });
+      const response = await axios.put(`task/${taskId}`, { content });
       setTask(response.data);
       setError(null);
       return true;
@@ -127,18 +132,26 @@ function App() {
   };
 
   const completeTask = async (taskId) => {
+    if (!taskId) {
+      console.error('Cannot complete task: taskId is undefined');
+      setError('完成任务失败：taskId 未定义');
+      return false;
+    }
+    
     try {
       setLoading(true);
-      await axios.put(`${API_BASE_URL}/api/task/${taskId}/complete`);
+      await axios.put(`task/${taskId}/complete`);
       setTask(null);
       setError(null);
       return true;
     } catch (err) {
-      setError('标记任务完成时出错，请稍后再试');
+      setError('完成任务时出错，请稍后再试');
       console.error('Error completing task:', err);
       return false;
     } finally {
       setLoading(false);
+      // 刷新任务列表
+      fetchTodayTask();
     }
   };
 
