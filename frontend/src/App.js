@@ -13,10 +13,13 @@ import Footer from './components/Footer';
 // 在本地开发时使用环境变量，在生产环境使用相对路径
 const API_BASE_URL = process.env.NODE_ENV === 'development' 
   ? (process.env.REACT_APP_API_URL || 'http://localhost:5001')
-  : '';
+  : process.env.REACT_APP_API_URL || '';
+
+console.log('当前 API 基础 URL:', API_BASE_URL);
+console.log('当前环境:', process.env.NODE_ENV);
 
 // 配置 axios 默认设置
-axios.defaults.timeout = 10000; // 10秒超时
+axios.defaults.timeout = 15000; // 15秒超时
 axios.defaults.headers.common['Content-Type'] = 'application/json';
 
 // 添加请求拦截器，处理请求错误
@@ -24,6 +27,19 @@ axios.interceptors.request.use(
   config => {
     // 在发送请求之前做些什么
     console.log(`发送请求到: ${config.url}`);
+    
+    // 确保在生产环境中使用完整的 URL
+    if (process.env.NODE_ENV === 'production' && process.env.REACT_APP_API_URL && !config.url.includes('http')) {
+      if (config.url.startsWith('/api')) {
+        // 如果使用相对路径 /api，则使用 Netlify 代理
+        console.log(`使用相对路径: ${config.url}`);
+      } else if (API_BASE_URL) {
+        // 否则使用完整的 API URL
+        config.url = `${API_BASE_URL}${config.url}`;
+        console.log(`使用完整 URL: ${config.url}`);
+      }
+    }
+    
     return config;
   },
   error => {
@@ -37,6 +53,7 @@ axios.interceptors.request.use(
 axios.interceptors.response.use(
   response => {
     // 对响应数据做点什么
+    console.log(`收到响应:`, response.status, response.data);
     return response;
   },
   error => {
