@@ -9,8 +9,11 @@ import History from './components/History';
 import Header from './components/Header';
 import Footer from './components/Footer';
 
-// 获取API URL，先使用环境变量，如果没有则使用默认值
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5001';
+// 获取API URL，使用相对路径以便 Netlify 代理
+// 在本地开发时使用环境变量，在生产环境使用相对路径
+const API_BASE_URL = process.env.NODE_ENV === 'development' 
+  ? (process.env.REACT_APP_API_URL || 'http://localhost:5001')
+  : '';
 
 function App() {
   const [task, setTask] = useState(null);
