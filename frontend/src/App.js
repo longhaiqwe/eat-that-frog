@@ -15,6 +15,46 @@ const API_BASE_URL = process.env.NODE_ENV === 'development'
   ? (process.env.REACT_APP_API_URL || 'http://localhost:5001')
   : '';
 
+// 配置 axios 默认设置
+axios.defaults.timeout = 10000; // 10秒超时
+axios.defaults.headers.common['Content-Type'] = 'application/json';
+
+// 添加请求拦截器，处理请求错误
+axios.interceptors.request.use(
+  config => {
+    // 在发送请求之前做些什么
+    console.log(`发送请求到: ${config.url}`);
+    return config;
+  },
+  error => {
+    // 对请求错误做些什么
+    console.error('请求配置错误:', error);
+    return Promise.reject(error);
+  }
+);
+
+// 添加响应拦截器，统一处理响应错误
+axios.interceptors.response.use(
+  response => {
+    // 对响应数据做点什么
+    return response;
+  },
+  error => {
+    // 对响应错误做点什么
+    if (error.response) {
+      // 服务器返回了错误状态码
+      console.error(`服务器响应错误: ${error.response.status}`, error.response.data);
+    } else if (error.request) {
+      // 请求已发出，但没有收到响应
+      console.error('没有收到响应:', error.request);
+    } else {
+      // 在设置请求时触发了错误
+      console.error('请求错误:', error.message);
+    }
+    return Promise.reject(error);
+  }
+);
+
 function App() {
   const [task, setTask] = useState(null);
   const [loading, setLoading] = useState(true);

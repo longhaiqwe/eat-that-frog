@@ -1,6 +1,28 @@
 import React, { useState } from 'react';
 import './Home.css';
 
+// 日期格式化函数，处理无效日期
+const formatDate = (dateString) => {
+  if (!dateString) return '未知日期';
+  
+  try {
+    const date = new Date(dateString);
+    // 检查日期是否有效
+    if (isNaN(date.getTime())) return '未知日期';
+    
+    return date.toLocaleString('zh-CN', { 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  } catch (error) {
+    console.error('Date formatting error:', error);
+    return '未知日期';
+  }
+};
+
 const Home = ({ task, loading, error, createTask, updateTask, completeTask, refreshTask }) => {
   const [newTaskContent, setNewTaskContent] = useState('');
   const [isCreating, setIsCreating] = useState(false);
@@ -85,7 +107,7 @@ const Home = ({ task, loading, error, createTask, updateTask, completeTask, refr
           ) : (
             <div className="current-task">
               <p className="task-content">{task.content}</p>
-              <p className="task-date">创建于: {new Date(task.created_at).toLocaleString()}</p>
+              <p className="task-date">创建于: {formatDate(task.created_at)}</p>
               <div className="task-actions">
                 <button 
                   className="btn btn-primary" 
