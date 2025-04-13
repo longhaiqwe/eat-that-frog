@@ -2,11 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './History.css';
 
-// 获取 API 基础 URL
-const API_BASE_URL = process.env.NODE_ENV === 'development' 
-  ? (process.env.REACT_APP_API_URL || 'http://localhost:5001')
-  : '';
-
 // 日期格式化函数，处理无效日期
 const formatDate = (dateString) => {
   if (!dateString) return '未知日期';
@@ -38,7 +33,7 @@ const History = () => {
     const fetchHistory = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${API_BASE_URL}/api/tasks/history`);
+        const response = await axios.get(`api/tasks/history`);
         
         // 确保响应数据是数组
         if (Array.isArray(response.data)) {
