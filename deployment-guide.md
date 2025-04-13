@@ -29,7 +29,7 @@ git push -u origin main
 2. 点击“New +”按钮，选择“Web Service”
 3. 连接您的 GitHub 仓库
 4. 填写以下信息：
-   - 名称：eat-that-frog-api
+   - 名称：eat-that-frog
    - 根目录：backend
    - 运行时：Python 3
    - 构建命令：pip install -r requirements.txt
@@ -72,7 +72,7 @@ npm run build
    - 构建命令：npm run build
    - 发布目录：frontend/build
 5. 配置环境变量：
-   - 添加 REACT_APP_API_URL 环境变量，值为您的 Render API URL（如 https://eat-that-frog-api.onrender.com）
+   - 添加 REACT_APP_API_URL 环境变量，值为您的 Render API URL（如 https://eat-that-frog.onrender.com）
 6. 点击“Deploy site”
 
 ## 部署后的配置
