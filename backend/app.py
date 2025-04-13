@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, make_response
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, timedelta
@@ -6,7 +6,21 @@ import os
 
 app = Flask(__name__)
 # 配置CORS，允许所有域名访问API
-CORS(app, resources={r"/api/*": {"origins": "*"}})
+CORS(app)
+
+# 添加CORS头部的中间件
+@app.after_request
+def add_cors_headers(response):
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+    return response
+
+# 处理OPTIONS请求
+@app.route('/', defaults={'path': ''}, methods=['OPTIONS'])
+@app.route('/<path:path>', methods=['OPTIONS'])
+def options_handler(path):
+    return make_response()
 
 # 配置数据库
 db_path = os.environ.get('DATABASE_URL', 'sqlite:///frogs.db')
