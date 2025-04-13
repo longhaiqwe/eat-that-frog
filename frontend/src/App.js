@@ -35,7 +35,14 @@ axios.interceptors.request.use(
       config.url = `/api/${config.url}`;
     }
     
-    console.log(`最终请求URL: ${config.url}`);
+    // 在生产环境下添加完整的请求 URL
+    if (process.env.NODE_ENV === 'production') {
+      const fullUrl = new URL(config.url, window.location.origin).href;
+      console.log(`完整请求 URL: ${fullUrl}`);
+    } else {
+      console.log(`最终请求 URL: ${config.url}`);
+    }
+    
     return config;
   },
   error => {
@@ -49,7 +56,7 @@ axios.interceptors.request.use(
 axios.interceptors.response.use(
   response => {
     // 对响应数据做点什么
-    console.log(`收到响应:`, response.status, response.data);
+    console.log(`收到响应:`, response.status, typeof response.data === 'object' ? response.data : '非 JSON 响应数据');
     return response;
   },
   error => {
@@ -73,12 +80,25 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  useEffect(() => {
+    // 页面加载时获取任务
+    fetchTodayTask();
+  }, []);
+
   const fetchTodayTask = async () => {
     try {
       setLoading(true);
       const response = await axios.get(`task/today`);
-      setTask(response.data);
-      setError(null);
+      
+      // 检查响应数据是否为 JSON
+      if (typeof response.data === 'object') {
+        setTask(response.data);
+        setError(null);
+      } else {
+        console.error('服务器返回了非 JSON 响应数据');
+        setTask(null);
+        setError('服务器返回了非预期的响应数据格式');
+      }
     } catch (err) {
       if (err.response && err.response.status === 404) {
         // 没有任务，这不是错误
@@ -154,10 +174,6 @@ function App() {
       fetchTodayTask();
     }
   };
-
-  useEffect(() => {
-    fetchTodayTask();
-  }, []);
 
   return (
     <Router>
